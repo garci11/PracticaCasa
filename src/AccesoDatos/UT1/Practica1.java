@@ -89,87 +89,81 @@ public class Practica1 {
          *  heading Si es true, considera que hay cabecera
          *  Array de double {mínimo, máximo} o {NaN, NaN} si hay error
          */
-    public static double[] minMaxCol(int numeroColumna, ArrayList<String> file, boolean heading) {
-        // Array de retorno: {mínimo, máximo}
-        double[] resultado = {Double.NaN, Double.NaN};
+        public static double[] minMaxCol(int numeroColumna, ArrayList<String> file, boolean heading) {
+            // Inicializamos con NaN (Not a Number) como valor por defecto
+            double[] resultado = new double[]{Double.NaN, Double.NaN};
 
-        if (file == null || file.isEmpty()) {
-            System.out.println("El archivo está vacio");
+            // VALIDACIONES (condiciones que devuelven NaN):
+            // 1. Archivo nulo
+            // 2. Archivo vacío
+            // 3. Con cabecera pero solo tiene la cabecera
+            // 4. Número de columna negativo
+            if (file == null || file.isEmpty() ||
+                    (heading && file.size() <= 1) ||
+                    numeroColumna < 0) {
+                return resultado;
+            }
+
+            // Determinamos el índice de inicio (igual que en head())
+            int inicio;
+            if (heading) {
+                inicio = 1;  // Saltar cabecera
+            } else {
+                inicio = 0;  // Incluir todas las líneas
+            }
+
+            // Inicializamos valores extremos
+            double min = Double.MAX_VALUE;  // Valor máximo posible para double
+            double max = Double.MIN_VALUE;  // Valor mínimo posible para double
+            boolean datosValidos = false;   // Flag para verificar si encontramos al menos un valor válido
+
+            // Procesamos cada línea del archivo
+            for (int i = inicio; i < file.size(); i++) {
+                String linea = file.get(i);
+                // Dividimos la línea por comas (formato CSV)
+                String[] columnas = linea.split(",");
+
+                // Verificamos que la columna solicitada existe en esta línea
+                if (numeroColumna < columnas.length) {
+                    try {
+                        // Intentamos convertir el valor a double
+                        // trim() elimina espacios en blanco al inicio y final
+                        double valor = Double.parseDouble(columnas[numeroColumna].trim());
+
+                        // Actualizamos mínimo y máximo
+                        min = Math.min(min, valor);
+                        max = Math.max(max, valor);
+                        datosValidos = true;  // Marcamos que encontramos al menos un valor válido
+
+                    } catch (NumberFormatException e) {
+                        // Si la conversión falla, ignoramos esta línea
+                        // No hacemos nada, simplemente continuamos con la siguiente línea
+                    }
+                }
+            }
+
+            // Solo devolvemos valores reales si encontramos al menos un dato válido
+            if (datosValidos) {
+                resultado[0] = min;
+                resultado[1] = max;
+            }
+
             return resultado;
         }
 
-        int inicio;
-        if (heading) {
-            inicio = 1;
-        }else{
-            inicio = 0;
-        }
-
-        // Variables para rastrear min y max
-        double minimo = Double.MAX_VALUE;
-        double maximo = Double.MIN_VALUE;
-        boolean hayValoresValidos = false;
-
-        for (int i = inicio; i < file.size(); i++) {
-            String linea = file.get(i);
-
-            // Dividimos la línea por comas
-            String[] columnas = linea.split(",");
-
-
-            try {
-                // Intentamos convertir el valor a double
-                double valor = Double.parseDouble(columnas[numeroColumna].trim());
-
-                // Actualizamos mínimo y máximo
-                if (valor < minimo) {
-                    minimo = valor;
-                }
-                if (valor > maximo) {
-                    maximo = valor;
-                }
-
-                hayValoresValidos = true;
-
-            } catch (NumberFormatException e) {
-                // Si no se puede convertir a número, lo ignoramos
-                continue;
-            }
-        }
-
-        // Si encontramos valores válidos, los devolvemos
-        if (hayValoresValidos) {
-            resultado[0] = minimo;
-            resultado[1] = maximo;
-        }
-
-        return resultado;
-    }
-
     /**
-     * Método main para probar el código
+     * Método main para demostrar el uso de las funciones
      */
     public static void main(String[] args) {
-        System.out.println("=== PRUEBA DEL CÓDIGO CORREGIDO ===\n");
+        // Ejemplo de uso
+        Path path = Path.of("datos_ajedrez.csv");
+        ArrayList<String> archivo = leerCSV();
 
-        // 1. Leer el CSV completo
-        ArrayList<String> contenido = leerCSV();
-        System.out.println("\n✓ Archivo leído: " + contenido.size() + " líneas\n");
+        System.out.println("=== HEAD (3 líneas, con cabecera) ===");
+        head(3, archivo, true);
 
-        // 2. Mostrar las primeras 3 líneas CON heading
-        System.out.println("--- HEAD con heading=true (3 líneas) ---");
-        head(3, contenido, true);
-
-        // 3. Mostrar las primeras 3 líneas SIN heading
-        System.out.println("\n--- HEAD con heading=false (3 líneas) ---");
-        head(3, contenido, false);
-
-        // 4. Calcular min y max de la columna 1
-        System.out.println("\n--- MIN-MAX de columna 1 ---");
-        ArrayList<Double> resultado = minMaxCol(1, contenido, true);
-        if (resultado.size() == 2) {
-            System.out.println("Mínimo: " + resultado.get(0));
-            System.out.println("Máximo: " + resultado.get(1));
-        }
+        System.out.println("\n=== MIN/MAX Columna 2 ===");
+        double[] minMax = minMaxCol(2, archivo, true);
+        System.out.println("Mínimo: " + minMax[0] + ", Máximo: " + minMax[1]);
     }
 }
