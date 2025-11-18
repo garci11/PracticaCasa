@@ -1,0 +1,5 @@
+Nombre: adrian
+Edad: 22
+Curso: dam
+hola
+adios
